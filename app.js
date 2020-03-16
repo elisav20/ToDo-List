@@ -92,7 +92,8 @@ const tasks = [];
   setTheme(lastSelectedTheme);
   renderAllTasks(objOfTasks);
   form.addEventListener("submit", onFormSubmitHandler);
-  listContainer.addEventListener("click", onDeletehandler);
+  listContainer.addEventListener("click", onDeleteHandler);
+  listContainer.addEventListener("click", onDoneHandler);
   themeSelect.addEventListener("change", onThemeSelectHandler);
 
   function checkTasks(tasksList) {
@@ -132,17 +133,26 @@ const tasks = [];
     span.textContent = title;
     span.style.fontWeight = "bold";
 
+    const btnBlock = document.createElement("div");
+    btnBlock.classList.add("w-100", "d-flex", "justify-content-end");
+
     const deleteBtn = document.createElement("button");
     deleteBtn.textContent = "Delete task";
-    deleteBtn.classList.add("btn", "btn-danger", "ml-auto", "delete-btn");
+    deleteBtn.classList.add("btn", "btn-danger", "delete-btn");
+
+    const doneBtn = document.createElement("button");
+    doneBtn.textContent = "Done";
+    doneBtn.classList.add("btn", "btn-success", "mr-2", "done-btn");
 
     const article = document.createElement("p");
     article.textContent = body;
     article.classList.add("mt-2", "w-100");
 
     li.appendChild(span);
-    li.appendChild(deleteBtn);
     li.appendChild(article);
+    btnBlock.appendChild(doneBtn);
+    btnBlock.appendChild(deleteBtn);
+    li.appendChild(btnBlock);
 
     return li;
   }
@@ -190,13 +200,33 @@ const tasks = [];
     el.remove();
   }
 
-  function onDeletehandler({ target }) {
+  function onDeleteHandler({ target }) {
     if (target.classList.contains("delete-btn")) {
       const parent = target.closest("[data-task-id]");
       const id = parent.dataset.taskId;
       const confirmed = deleteTask(id);
       deleteTaskFromHtml(confirmed, parent);
       checkTasks(objOfTasks);
+    }
+  }
+
+  function changeColorTask(confirmed, el) {
+    if (!confirmed) return;
+    el.style.background = "#6ae675";
+  }
+
+  function doneTask(id) {
+    const isConfirm = confirm("Это задача выполнена?");
+    if (!isConfirm) return isConfirm;
+    return isConfirm;
+  }
+
+  function onDoneHandler({ target }) {
+    if (target.classList.contains("done-btn")) {
+      const parent = target.closest("[data-task-id]");
+      const id = parent.dataset.taskId;
+      const confirmed = doneTask(id);
+      changeColorTask(confirmed, parent);
     }
   }
 
