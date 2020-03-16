@@ -37,9 +37,11 @@ body {
   background-color: var(--default-btn-bg);
   border-color: var(--default-btn-border-color);
 }
+
 .btn-primary:not(:disabled):not(.disabled):active:focus {
   box-shadow: var(--default-btn-focus-box-shadow);
 }
+
 .btn.btn-primary:hover {
   color: var(--default-btn-text-color);
   background-color: var(--default-btn-hover-bg);
