@@ -86,6 +86,8 @@ const tasks = [];
   const inputBody = form.elements["body"];
   const themeSelect = document.getElementById("themeSelect");
   const message = document.getElementById("message");
+  const allTasks = document.getElementById("show-all");
+  const unfinishedTasks = document.getElementById("show-unfinished");
 
   // Events
   checkTasks(objOfTasks);
@@ -95,9 +97,11 @@ const tasks = [];
   listContainer.addEventListener("click", onDeleteHandler);
   listContainer.addEventListener("click", onDoneHandler);
   themeSelect.addEventListener("change", onThemeSelectHandler);
+  allTasks.addEventListener("click", onShowAllTasksHandler);
+  unfinishedTasks.addEventListener("click", onShowUnfinishedTasksHandler);
 
   function checkTasks(tasksList) {
-    if (Object.keys(objOfTasks).length <= 0) {
+    if (Object.keys(tasksList).length <= 0) {
       message.classList.remove("d-none");
     } else {
       message.classList.add("d-none");
@@ -218,15 +222,46 @@ const tasks = [];
   function doneTask(id) {
     const isConfirm = confirm("Это задача выполнена?");
     if (!isConfirm) return isConfirm;
+    objOfTasks[id].completed = true;
     return isConfirm;
   }
 
   function onDoneHandler({ target }) {
-    if (target.classList.contains("done-btn")) {
+    if (
+      target.classList.contains("done-btn") &&
+      !target.classList.contains("disabled")
+    ) {
       const parent = target.closest("[data-task-id]");
       const id = parent.dataset.taskId;
       const confirmed = doneTask(id);
       changeColorTask(confirmed, parent);
+      target.classList.add("disabled");
+    }
+  }
+
+  function showAllTasks(id) {
+    let parent = document.querySelector("[data-task-id='" + id + "']");
+    parent.classList.remove("d-none");
+    parent.classList.add("d-flex");
+  }
+
+  function onShowAllTasksHandler() {
+    for (key in objOfTasks) {
+      showAllTasks(objOfTasks[key]._id);
+    }
+  }
+
+  function showUnfinishedTasks(id) {
+    let parent = document.querySelector("[data-task-id='" + id + "']");
+    parent.classList.remove("d-flex");
+    parent.classList.add("d-none");
+  }
+
+  function onShowUnfinishedTasksHandler() {
+    for (key in objOfTasks) {
+      if (objOfTasks[key].completed) {
+        showUnfinishedTasks(objOfTasks[key]._id);
+      }
     }
   }
 
