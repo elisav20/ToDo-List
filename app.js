@@ -76,7 +76,6 @@ const tasks = [];
   };
 
   let lastSelectedTheme = localStorage.getItem("app_theme") || "default";
-
   // Elemnts UI
   const listContainer = document.querySelector(
     ".tasks-list-section .list-group"
@@ -88,10 +87,12 @@ const tasks = [];
   const message = document.getElementById("message");
   const allTasks = document.getElementById("show-all");
   const unfinishedTasks = document.getElementById("show-unfinished");
+  let isUnfinishedTasks = false;
+  themeSelect.value = lastSelectedTheme;
 
   // Events
-  checkTasks(objOfTasks);
   setTheme(lastSelectedTheme);
+  checkTasks(objOfTasks);
   renderAllTasks(objOfTasks);
   form.addEventListener("submit", onFormSubmitHandler);
   listContainer.addEventListener("click", onDeleteHandler);
@@ -148,12 +149,23 @@ const tasks = [];
     doneBtn.textContent = "Done";
     doneBtn.classList.add("btn", "btn-success", "mr-2", "done-btn");
 
+    const reestablishBtn = document.createElement("button");
+    reestablishBtn.textContent = "Reestablish";
+    reestablishBtn.classList.add(
+      "btn",
+      "btn-success",
+      "d-none",
+      "mr-2",
+      "reestablish-btn"
+    );
+
     const article = document.createElement("p");
     article.textContent = body;
     article.classList.add("mt-2", "w-100");
 
     li.appendChild(span);
     li.appendChild(article);
+    btnBlock.appendChild(reestablishBtn);
     btnBlock.appendChild(doneBtn);
     btnBlock.appendChild(deleteBtn);
     li.appendChild(btnBlock);
@@ -227,15 +239,24 @@ const tasks = [];
   }
 
   function onDoneHandler({ target }) {
-    if (
-      target.classList.contains("done-btn") &&
-      !target.classList.contains("disabled")
-    ) {
+    if (target.classList.contains("done-btn")) {
       const parent = target.closest("[data-task-id]");
       const id = parent.dataset.taskId;
       const confirmed = doneTask(id);
+      const reestablishBtn = parent.querySelector(".reestablish-btn");
+      reestablishBtn.addEventListener("click", onReestablishTaskHandler);
+
+      if (!confirmed) return;
+
       changeColorTask(confirmed, parent);
-      target.classList.add("disabled");
+      target.classList.add("d-none");
+      reestablishBtn.classList.remove("d-none");
+
+      if (isUnfinishedTasks) {
+        onShowUnfinishedTasksHandler();
+      }
+
+      sortTasks(objOfTasks);
     }
   }
 
@@ -246,6 +267,7 @@ const tasks = [];
   }
 
   function onShowAllTasksHandler() {
+    isUnfinishedTasks = false;
     for (key in objOfTasks) {
       showAllTasks(objOfTasks[key]._id);
     }
@@ -253,16 +275,57 @@ const tasks = [];
 
   function showUnfinishedTasks(id) {
     let parent = document.querySelector("[data-task-id='" + id + "']");
+    isUnfinishedTasks = true;
     parent.classList.remove("d-flex");
     parent.classList.add("d-none");
   }
 
   function onShowUnfinishedTasksHandler() {
+    isUnfinishedTasks = true;
     for (key in objOfTasks) {
       if (objOfTasks[key].completed) {
         showUnfinishedTasks(objOfTasks[key]._id);
       }
     }
+  }
+
+  function reestablishTask(tasksList, id) {
+    const isConfirm = confirm(`Вы точно хотите восстановить задачу?`);
+    if (!isConfirm) return isConfirm;
+    tasksList[id].completed = false;
+    return isConfirm;
+  }
+
+  function onReestablishTaskHandler({ target }) {
+    const parent = target.closest("[data-task-id]");
+    const id = parent.dataset.taskId;
+    const reestablishBtn = parent.querySelector(".reestablish-btn");
+    const doneBtn = parent.querySelector(".done-btn");
+    const confirmed = reestablishTask(objOfTasks, id);
+
+    if (!confirmed) return;
+
+    reestablishBtn.classList.add("d-none");
+    doneBtn.classList.remove("d-none");
+    parent.style.background = "#fff";
+  }
+
+  function removeTask(id) {
+    let parent = document.querySelector("[data-task-id='" + id + "']");
+    parent.remove();
+  }
+
+  function sortTasks(tasksList) {
+    let uncompletedTask;
+    let listItem;
+    Object.values(tasksList).forEach(task => {
+      if(!task.completed) {
+        uncompletedTask = task;
+        removeTask(task._id);
+        listItem = listItemTemplate(uncompletedTask);
+        listContainer.insertAdjacentElement("afterbegin", listItem);
+      }
+    });
   }
 
   function onThemeSelectHandler(e) {
